@@ -9,7 +9,7 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 3. Run the CLI: `auto-presentation-agent --input sample.txt --instructions "Focus on results"`
 4. Find the PPTX at `output/presentation.pptx` and a preview markdown file alongside it.
 5. Optional: pass style overrides (e.g., `--style font=Inter --style palette=dark`) to influence theme choices.
-6. Optional LLM and image gen: `--use-llm --llm-provider gemini --llm-model gemini-1.5-flash` (requires `GEMINI_API_KEY`), `--image-endpoint http://localhost:8188` for ComfyUI. Assets save to `--assets-dir` (default `assets/`).
+6. Optional LLM and image gen: `--use-llm --llm-provider gemini --llm-model gemini-1.5-flash` (requires `GEMINI_API_KEY`); `--image-backend gemini` uses the same key for image generation, or `--image-backend comfy --image-endpoint http://localhost:8188` for ComfyUI. Assets save to `--assets-dir` (default `assets/`).
 
 ## Project Layout
 

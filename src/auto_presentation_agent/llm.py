@@ -2,6 +2,7 @@ from __future__ import annotations
 
 """Lightweight Gemini client wrapper with graceful fallback."""
 
+import base64
 import json
 import logging
 import os
@@ -46,6 +47,43 @@ class GeminiClient:
         if not parts:
             return None
         return parts[0].get("text")
+
+    def generate_image(self, prompt: str, image_model: Optional[str] = None) -> Optional[bytes]:
+        """Generate an image via Gemini image generation (returns PNG bytes)."""
+        model = image_model or self.model
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+        )
+        body = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "image/png"},
+        }
+        data = json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+            logger.warning("Gemini image request failed: %s", exc)
+            return None
+        candidates = payload.get("candidates") or []
+        if not candidates:
+            return None
+        parts = candidates[0].get("content", {}).get("parts", [])
+        if not parts:
+            return None
+        data_field = parts[0].get("inlineData") or {}
+        if not data_field.get("data"):
+            return None
+        try:
+            return base64.b64decode(data_field["data"])
+        except Exception:  # pragma: no cover - defensive
+            return None
 
 
 def build_gemini_from_env(model: Optional[str] = None) -> Optional[GeminiClient]:

@@ -14,6 +14,7 @@ import types
 
 from auto_presentation_agent.designer import design_slides
 from auto_presentation_agent import data_analysis as da
+from auto_presentation_agent import imagegen
 from auto_presentation_agent.models import (
     ContentSummary,
     OutlinePlan,
@@ -80,6 +81,9 @@ class OutlineDesignerTests(unittest.TestCase):
 
         drafts = design_slides(outline, fake_gen, tmp)
         self.assertTrue(drafts[0].assets[0].path and drafts[0].assets[0].path.exists())
+        for f in tmp.glob("*"):
+            f.unlink()
+        tmp.rmdir()
 
 @unittest.skipUnless(PPTX_AVAILABLE, "python-pptx is required for the pipeline smoke test")
 class PipelineSmokeTests(unittest.TestCase):
@@ -156,3 +160,18 @@ class LlmIntegrationTests(unittest.TestCase):
         summary = da.analyze_request(request, llm_client=fake_llm)
         joined = " ".join(summary.findings).lower()
         self.assertIn("llm summary", joined)
+
+    def test_gemini_image_backend_uses_client_bytes(self) -> None:
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            prompt = "abstract waves"
+            fake_client = types.SimpleNamespace(
+                generate=lambda p: "text",
+                generate_image=lambda p, image_model=None: b"\x89PNG\r\n\x1a\n",
+            )
+            path = imagegen.generate_image(prompt, tmp, backend="gemini", gemini_client=fake_client)
+            self.assertTrue(path and path.exists())
+        finally:
+            for f in tmp.glob("*"):
+                f.unlink()
+            tmp.rmdir()

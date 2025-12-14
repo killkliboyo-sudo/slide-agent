@@ -18,6 +18,7 @@ class PresentationRequest:
     llm_provider: Optional[str] = "gemini"
     llm_model: Optional[str] = None
     image_endpoint: Optional[str] = None
+    image_backend: str = "comfy"  # comfy | gemini
     assets_dir: Path = Path("assets")
 
 

@@ -88,6 +88,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="ComfyUI base URL for image generation (optional).",
     )
     parser.add_argument(
+        "--image-backend",
+        type=str,
+        default="comfy",
+        choices=["comfy", "gemini"],
+        help="Image generation backend: comfy (local) or gemini (Google).",
+    )
+    parser.add_argument(
         "--assets-dir",
         type=Path,
         default=Path("assets"),
@@ -126,6 +133,7 @@ def main() -> None:
         llm_provider=args.llm_provider,
         llm_model=args.llm_model,
         image_endpoint=args.image_endpoint,
+        image_backend=args.image_backend,
         assets_dir=args.assets_dir.expanduser(),
     )
     result = run_pipeline(request)

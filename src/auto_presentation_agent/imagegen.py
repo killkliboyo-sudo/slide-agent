@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""ComfyUI image generation helper with a local placeholder fallback."""
+"""Image generation helper with ComfyUI or Gemini backends plus placeholder fallback."""
 
 import base64
 import logging
@@ -17,7 +17,14 @@ _PIXEL = (
 )
 
 
-def generate_image(prompt: str, assets_dir: Path, endpoint: Optional[str]) -> Optional[Path]:
+def generate_image(
+    prompt: str,
+    assets_dir: Path,
+    backend: str = "comfy",
+    endpoint: Optional[str] = None,
+    gemini_client=None,
+    gemini_image_model: Optional[str] = None,
+) -> Optional[Path]:
     """
     Attempt to call a ComfyUI endpoint to generate an image.
 
@@ -27,8 +34,17 @@ def generate_image(prompt: str, assets_dir: Path, endpoint: Optional[str]) -> Op
     assets_dir.mkdir(parents=True, exist_ok=True)
     output = assets_dir / _safe_filename(prompt)
 
+    if backend == "gemini" and gemini_client:
+        try:
+            data = gemini_client.generate_image(prompt, image_model=gemini_image_model)
+            if data:
+                output.write_bytes(data)
+                return output
+        except Exception as exc:  # pragma: no cover - network dependent
+            logger.warning("Gemini image generation failed (%s); falling back.", exc)
+
     # Try calling ComfyUI if available.
-    if endpoint:
+    if backend == "comfy" and endpoint:
         import json
         import urllib.error
         import urllib.request
@@ -44,9 +60,8 @@ def generate_image(prompt: str, assets_dir: Path, endpoint: Optional[str]) -> Op
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 if resp.status in (200, 201):
-                    # If ComfyUI responds with an image URL or bytes, this is where it would be saved.
-                    # For now we just note success and still drop a placeholder.
                     logger.info("ComfyUI accepted prompt for generation.")
+                    # Real implementation would pull the generated image; placeholder written below.
         except Exception as exc:  # pragma: no cover - network dependent
             logger.warning("ComfyUI generation failed (%s); using placeholder.", exc)
 

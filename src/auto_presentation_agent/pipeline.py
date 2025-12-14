@@ -36,11 +36,16 @@ def run_pipeline(request: PresentationRequest) -> AssemblyResult:
         "outline", generate_outline, summary, request.duration_minutes, request.style_prefs, llm_client, request.use_llm
     )
 
-    image_generator = (
-        lambda prompt, assets_dir: imagegen.generate_image(prompt, assets_dir, request.image_endpoint)
-        if (request.image_endpoint or assets_dir)
-        else None
-    )
+    def image_generator(prompt, assets_dir):
+        return imagegen.generate_image(
+            prompt,
+            assets_dir,
+            backend=request.image_backend,
+            endpoint=request.image_endpoint,
+            gemini_client=llm_client,
+            gemini_image_model=request.llm_model,
+        )
+
     drafts = _run_stage("design", design_slides, outline, image_generator, request.assets_dir)
     result = _run_stage("assembly", assemble, drafts, requested_output=request.output_path, theme=outline.theme)
     return result
