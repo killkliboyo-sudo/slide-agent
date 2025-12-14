@@ -38,7 +38,7 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 - **Data Analysis**: detect input type by suffix/MIME; text/markdown read with UTF-8 fallback; CSV/XLSX parsed via pandas; PDFs stubbed until adapter added. Normalize extracted text into short paragraphs, collect numeric columns to allow quick charts, and carry absolute file paths in `sources`. Programmatic callers may pass missing files which become findings with a warning; the CLI blocks missing paths earlier.
 - **Outline Generation**: slide count = `duration_minutes` if provided, else max(len(findings), len(topics), 3) capped at 12. Titles rewritten to conclusion form (`<topic>: <conclusion>` → `<conclusion>`). Bullets trimmed to <=120 chars, max 5 per slide. Visual suggestion chosen from `chart|image` based on presence of tabular data.
 - **Slide Design**: cycle layouts (`split`, `stacked`, `focus`) and attach `AssetSpec` placeholders. Condense bullets to crisp statements; inject note hinting at SPEC principles (single concept, title-as-conclusion). Style tokens: ratio 16:9, sans-serif, high-contrast palette, optional `style_prefs` overrides (palette/font/background choice).
-- **Assembly**: until python-pptx lands, emit markdown preview next to requested PPTX path. Planned PPTX theme: master slide with title+body+footer placeholders, consistent margins, slide number/footer with sources when available. Assets resolved from `assets/` relative paths; non-existent assets skipped with a note.
+- **Assembly**: build PPTX with `python-pptx` (16:9), emit a markdown preview alongside. Apply theme tokens (font, palette) to title/body/footer, set background fill and accent bar. Assets resolved from `assets/` relative paths; non-existent assets skipped with a note.
 - **CLI/Orchestration**: argparse entry validates at least one existing input (rejects missing paths), expands `~`, and passes `PresentationRequest` to `run_pipeline`. Logging prints stage boundaries and preview location with timings; non-zero exit on unhandled exceptions.
 
 ## Data Structures (initial draft)
@@ -66,9 +66,10 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 1) Define data models and CLI (no external deps).
 2) Implement Outline Generator heuristics with mock data.
 3) Add Slide Designer text condensing and chart stubs.
-4) Integrate `python-pptx` assembler with simple theme.
-5) Wire data analysis readers for text/CSV and add provenance tracking.
-6) Add optional adapters (PDF parsing, LLM/image generation).
+4) Integrate `python-pptx` assembler with simple theme. ✅
+5) Wire data analysis readers for text/CSV and add provenance tracking. ✅
+6) Add palette-aware theming and style overrides (font/palette) propagated to PPTX. ✅
+7) Add optional adapters (PDF parsing, LLM/image generation).
 
 ## Upcoming tasks (working list)
 - Harden CLI validation (missing files, empty inputs) and log stage timing.
