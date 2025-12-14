@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GeminiClient:
     api_key: str
-    model: str = "gemini-1.5-flash"
+    model: str = "gemini-1.5-pro-latest"
 
     def generate(self, prompt: str) -> Optional[str]:
         """Send a simple prompt to Gemini and return the text response."""
@@ -50,7 +50,7 @@ class GeminiClient:
 
     def generate_image(self, prompt: str, image_model: Optional[str] = None) -> Optional[bytes]:
         """Generate an image via Gemini image generation (returns PNG bytes)."""
-        model = image_model or self.model
+        model = image_model or "gemini-1.5-flash-latest"
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
         )
@@ -91,4 +91,4 @@ def build_gemini_from_env(model: Optional[str] = None) -> Optional[GeminiClient]
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return None
-    return GeminiClient(api_key=api_key, model=model or "gemini-1.5-flash")
+    return GeminiClient(api_key=api_key, model=model or "gemini-1.5-pro-latest")

@@ -28,7 +28,7 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 - **Slide Designer**
   - Input: `OutlinePlan`, style guide defaults (16:9, high contrast, sans-serif).
   - Output: list of `SlideDraft` items containing text blocks, asset specs (charts/images), and layout tokens (left/right/stack).
-  - Implementation: text condensing to short bullets, matplotlib chart generation from sample/provided data, ComfyUI hook for image generation (optional; placeholder fallback when unavailable), Gemini image backend (banana pro) using the same API key when enabled.
+  - Implementation: text condensing to short bullets, matplotlib chart generation from sample/provided data, ComfyUI hook for image generation (optional; placeholder fallback when unavailable), Gemini image backend (banana pro) using the same API key when enabled; default models `gemini-1.5-pro-latest` (text) and `gemini-1.5-flash-latest` (image).
 - **Presentation Assembler**
   - Input: `SlideDraft` list and assets.
   - Output: `output/presentation.pptx` (and optional PDF export).

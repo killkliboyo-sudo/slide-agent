@@ -43,7 +43,7 @@ def run_pipeline(request: PresentationRequest) -> AssemblyResult:
             backend=request.image_backend,
             endpoint=request.image_endpoint,
             gemini_client=llm_client,
-            gemini_image_model=request.llm_model,
+            gemini_image_model=request.image_model or request.llm_model,
         )
 
     drafts = _run_stage("design", design_slides, outline, image_generator, request.assets_dir)

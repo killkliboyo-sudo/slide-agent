@@ -16,3 +16,4 @@ Chronological log of decisions and completed steps.
 - 2025-12-15: Added optional PDF extraction (via pdfplumber) with graceful fallback and coverage to ensure PDFs are noted in findings.
 - 2025-12-15: Introduced optional Gemini LLM-assisted analysis/outline refinement and ComfyUI image hook (placeholder fallback), added CLI flags/env guidance, and covered LLM/image pathways with tests/mocks.
 - 2025-12-15: Added Gemini image backend (banana pro) alongside ComfyUI, with CLI selection and tests using mocked clients; README/plan updated accordingly.
+- 2025-12-15: Updated default Gemini model names to `gemini-1.5-pro-latest` (text) and `gemini-1.5-flash-latest` (image) with CLI overrides.

@@ -95,6 +95,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Image generation backend: comfy (local) or gemini (Google).",
     )
     parser.add_argument(
+        "--image-model",
+        type=str,
+        default=None,
+        help="Image model name for Gemini backend (default gemini-1.5-flash-latest).",
+    )
+    parser.add_argument(
         "--assets-dir",
         type=Path,
         default=Path("assets"),
@@ -134,6 +140,7 @@ def main() -> None:
         llm_model=args.llm_model,
         image_endpoint=args.image_endpoint,
         image_backend=args.image_backend,
+        image_model=args.image_model,
         assets_dir=args.assets_dir.expanduser(),
     )
     result = run_pipeline(request)
