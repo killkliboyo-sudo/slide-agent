@@ -10,6 +10,7 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 4. Find the PPTX at `output/presentation.pptx` and a preview markdown file alongside it.
 5. Optional: pass style overrides (e.g., `--style font=Inter --style palette=dark`) to influence theme choices.
 6. Optional LLM and image gen: `--use-llm --llm-provider gemini --llm-model gemini-1.5-pro-latest` (requires `GEMINI_API_KEY`); `--image-backend gemini --image-model gemini-1.5-flash-latest` uses the same key for images, or `--image-backend comfy --image-endpoint http://localhost:8188` for ComfyUI. Assets save to `--assets-dir` (default `assets/`).
+7. List available Gemini models: `GEMINI_API_KEY=... auto-presentation-agent --list-gemini-models`.
 
 ## Project Layout
 
@@ -27,10 +28,10 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 
 ## Testing
 
-- Run `python -m unittest discover -v tests`. The pipeline smoke test is skipped automatically if `python-pptx` is unavailable, though it is included in project dependencies.
- - The PPTX smoke test asserts that theme overrides (font, palette) flow through to the rendered file.
- - PDF analysis is optional; if `pdfplumber` is not installed, a warning is emitted instead of extraction.
-  - LLM/Image pathways are covered via mocks; no network calls occur during tests.
+- Run `python -m unittest discover -v tests`. The PPTX smoke test now runs when `python-pptx` is installed.
+- The PPTX smoke test asserts that theme overrides (font, palette) flow through to the rendered file.
+- PDF analysis is optional; if `pdfplumber` is not installed, a warning is emitted instead of extraction.
+- LLM/Image pathways are covered via mocks; no network calls occur during tests. ComfyUI workflow retrieval is not exercised yet.
 
 ## Next Steps
 

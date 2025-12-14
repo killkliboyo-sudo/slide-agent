@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -15,6 +16,7 @@ import types
 from auto_presentation_agent.designer import design_slides
 from auto_presentation_agent import data_analysis as da
 from auto_presentation_agent import imagegen
+from auto_presentation_agent import llm
 from auto_presentation_agent.models import (
     ContentSummary,
     OutlinePlan,
@@ -175,3 +177,27 @@ class LlmIntegrationTests(unittest.TestCase):
             for f in tmp.glob("*"):
                 f.unlink()
             tmp.rmdir()
+
+    def test_gemini_model_listing_parses_names(self) -> None:
+        fake_payload = {"models": [{"name": "models/gemini-1"}, {"name": "models/gemini-2"}]}
+
+        def fake_urlopen(req, timeout=10):
+            class _Resp:
+                status = 200
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, exc_type, exc, tb):
+                    return False
+
+                def read(self):
+                    import json
+
+                    return json.dumps(fake_payload).encode("utf-8")
+
+            return _Resp()
+
+        with mock.patch("urllib.request.urlopen", fake_urlopen):
+            models = llm.list_gemini_models("dummy")
+        self.assertEqual(models, ["models/gemini-1", "models/gemini-2"])

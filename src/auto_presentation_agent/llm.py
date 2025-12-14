@@ -92,3 +92,17 @@ def build_gemini_from_env(model: Optional[str] = None) -> Optional[GeminiClient]
     if not api_key:
         return None
     return GeminiClient(api_key=api_key, model=model or "gemini-1.5-pro-latest")
+
+
+def list_gemini_models(api_key: str) -> list[str]:
+    """Retrieve available Gemini model names using the public models endpoint."""
+    url = "https://generativelanguage.googleapis.com/v1beta/models"
+    req = urllib.request.Request(f"{url}?key={api_key}", method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+        logger.warning("Failed to list Gemini models: %s", exc)
+        return []
+    models = payload.get("models") or []
+    return [model.get("name") for model in models if model.get("name")]

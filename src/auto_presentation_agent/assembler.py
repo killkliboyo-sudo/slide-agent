@@ -54,7 +54,7 @@ def _add_slide(prs: Presentation, slide: SlideDraft, font_name: str, palette: di
     layout = prs.slide_layouts[6]  # blank layout
     ppt_slide = prs.slides.add_slide(layout)
 
-    _apply_background(ppt_slide, palette)
+    _apply_background(ppt_slide, palette, prs)
 
     margin = Inches(0.6)
     body_top = margin + Inches(1.0)
@@ -120,7 +120,7 @@ def _add_slide(prs: Presentation, slide: SlideDraft, font_name: str, palette: di
             color=palette["primary"],
         )
 
-    _add_footer(ppt_slide, slide.sources, slide.notes or "", font_name, color=palette["muted"])
+    _add_footer(ppt_slide, slide.sources, slide.notes or "", font_name, color=palette["muted"], prs=prs)
 
 
 def _add_title(slide, title: str, left, top, width, font_name: str, color: str) -> None:
@@ -187,11 +187,11 @@ def _add_asset_placeholder(
     frame.paragraphs[0].font.color.rgb = _hex_to_rgb(color)
 
 
-def _add_footer(slide, sources: list[str], note: str, font_name: str, color: str) -> None:
+def _add_footer(slide, sources: list[str], note: str, font_name: str, color: str, prs: Presentation) -> None:
     footer = slide.shapes.add_textbox(
         Inches(0.6),
-        slide.part.slide_height - Inches(0.8),
-        slide.part.slide_width - Inches(1.2),
+        prs.slide_height - Inches(0.8),
+        prs.slide_width - Inches(1.2),
         Inches(0.6),
     )
     frame = footer.text_frame
@@ -210,7 +210,7 @@ def _add_footer(slide, sources: list[str], note: str, font_name: str, color: str
         note_para.font.color.rgb = _hex_to_rgb(color)
 
 
-def _apply_background(slide, palette: dict[str, str]) -> None:
+def _apply_background(slide, palette: dict[str, str], prs: Presentation) -> None:
     """Apply a solid background and a soft overlay strip for contrast."""
     background = slide.background
     fill = background.fill
@@ -222,7 +222,7 @@ def _apply_background(slide, palette: dict[str, str]) -> None:
         MSO_SHAPE.RECTANGLE,
         Inches(0),
         Inches(0),
-        slide.part.slide_width,
+        prs.slide_width,
         Inches(1.1),
     )
     bar.fill.solid()

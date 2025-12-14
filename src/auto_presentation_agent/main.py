@@ -107,6 +107,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory to store generated assets.",
     )
     parser.add_argument(
+        "--list-gemini-models",
+        action="store_true",
+        help="List available Gemini models (requires GEMINI_API_KEY) and exit.",
+    )
+    parser.add_argument(
         "--output",
         "-o",
         type=Path,
@@ -122,6 +127,19 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     style_overrides = _parse_style_overrides(args.style)
     resolved_inputs, missing_inputs = _expand_inputs(args.input)
+
+    if args.list_gemini_models:
+        from .llm import list_gemini_models
+
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            parser.error("GEMINI_API_KEY is required to list models.")
+        models = list_gemini_models(api_key)
+        if not models:
+            parser.error("No models returned; check API key or connectivity.")
+        for name in models:
+            print(name)
+        return
 
     if missing_inputs:
         missing_list = ", ".join(str(p) for p in missing_inputs)
