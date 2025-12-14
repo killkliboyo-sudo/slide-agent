@@ -27,6 +27,7 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 ## Testing
 
 - Run `python -m unittest discover -v tests`. The pipeline smoke test is skipped automatically if `python-pptx` is unavailable, though it is included in project dependencies.
+ - The PPTX smoke test asserts that theme overrides (font, palette) flow through to the rendered file.
 
 ## Next Steps
 

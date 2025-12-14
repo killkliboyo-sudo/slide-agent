@@ -29,13 +29,7 @@ def generate_outline(
             )
         )
 
-    theme = {
-        "ratio": "16:9",
-        "font": "Segoe UI",
-        "palette": "high-contrast",
-    }
-    if style_prefs:
-        theme.update(style_prefs)
+    theme = _build_theme(style_prefs or {})
     return OutlinePlan(slides=slides, theme=theme)
 
 
@@ -59,3 +53,14 @@ def _pick_visual(summary: ContentSummary) -> str:
     if summary.data_points:
         return "chart"
     return "image"
+
+
+def _build_theme(style_prefs: dict[str, str]) -> dict[str, str]:
+    """Assemble a theme from defaults plus style overrides."""
+    base = {
+        "ratio": "16:9",
+        "font": "Segoe UI",
+        "palette": "high-contrast",
+    }
+    base.update(style_prefs)
+    return base

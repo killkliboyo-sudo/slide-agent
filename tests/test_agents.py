@@ -71,11 +71,12 @@ class PipelineSmokeTests(unittest.TestCase):
             output_path = base / "deck.pptx"
 
             preferred_font = "Inter"
+            palette_name = "light"
             request = PresentationRequest(
                 inputs=[text_file, csv_file],
                 instructions="Focus on results and upcoming work.",
                 duration_minutes=2,
-                style_prefs={"palette": "dark", "font": preferred_font},
+                style_prefs={"palette": palette_name, "font": preferred_font},
                 output_path=output_path,
             )
 
@@ -92,13 +93,20 @@ class PipelineSmokeTests(unittest.TestCase):
 
             prs = PptPresentation(output_path)
             fonts = []
+            backgrounds = []
             for shape in prs.slides[0].shapes:
                 if not hasattr(shape, "text_frame"):
                     continue
                 for para in shape.text_frame.paragraphs:
                     if para.font and para.font.name:
                         fonts.append(para.font.name)
+            # collect background color of first slide
+            bg_fill = prs.slides[0].background.fill
+            if bg_fill.type == 1:  # solid fill
+                color = bg_fill.fore_color.rgb
+                backgrounds.append((color[0], color[1], color[2]))
             self.assertIn(preferred_font, fonts)
+            self.assertTrue(backgrounds)  # palette applied to background
 
 
 if __name__ == "__main__":
