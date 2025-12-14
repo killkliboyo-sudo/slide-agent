@@ -12,6 +12,11 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     pd = None
 
+try:  # pdf parsing is optional
+    import pdfplumber  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    pdfplumber = None
+
 def analyze_request(request: PresentationRequest) -> ContentSummary:
     """
     Parse inputs and extract a coarse summary.
@@ -42,6 +47,11 @@ def analyze_request(request: PresentationRequest) -> ContentSummary:
             table_findings, table_points = _summarize_table(path)
             findings.extend(table_findings)
             data_points.extend(table_points)
+        elif suffix == ".pdf":
+            pdf_findings, excerpt = _summarize_pdf(path)
+            findings.extend(pdf_findings)
+            if excerpt:
+                findings.append(f"Excerpt from {path.name}: {excerpt}")
         else:
             findings.append(f"Unhandled file type noted: {path.name}")
 
@@ -103,3 +113,19 @@ def _summarize_table(path: Path) -> Tuple[list[str], list[str]]:
         stats = summary[col]
         data_points.append(f"{col}: mean {stats.get('mean')}, max {stats.get('max')}")
     return findings, data_points
+
+
+def _summarize_pdf(path: Path) -> Tuple[list[str], str]:
+    """Extract a short excerpt from a PDF when pdfplumber is available."""
+    warnings: list[str] = []
+    if pdfplumber is None:
+        return [f"PDF parsing not available (install pdfplumber) for {path.name}"], ""
+    try:
+        with pdfplumber.open(path) as pdf:
+            if not pdf.pages:
+                return [f"PDF has no pages: {path.name}"], ""
+            text = pdf.pages[0].extract_text() or ""
+            return [], text.strip().replace("\n", " ")[:200]
+    except Exception as exc:  # pragma: no cover - content dependent
+        warnings.append(f"Failed to read PDF {path.name}: {exc}")
+        return warnings, ""

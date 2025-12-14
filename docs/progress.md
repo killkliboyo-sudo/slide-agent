@@ -13,3 +13,4 @@ Chronological log of decisions and completed steps.
 - 2025-12-15: Added unit tests for outline/designer heuristics and a pipeline smoke test (skips if python-pptx is absent); refreshed README to reflect PPTX output and testing guidance.
 - 2025-12-15: Wired style preferences through outline→assembler to honor custom fonts/palette; ensured assembler uses theme fonts consistently.
 - 2025-12-15: Added palette-aware background/title coloring, resolved dark/light palettes, and extended smoke test to assert theme overrides flow into PPTX.
+- 2025-12-15: Added optional PDF extraction (via pdfplumber) with graceful fallback and coverage to ensure PDFs are noted in findings.

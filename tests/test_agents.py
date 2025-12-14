@@ -111,3 +111,19 @@ class PipelineSmokeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+class DataAnalysisPdfTests(unittest.TestCase):
+    def test_pdf_is_noted_and_summarized_or_warned(self) -> None:
+        from auto_presentation_agent import data_analysis as da
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            base = Path(tmpdir)
+            pdf_path = base / "sample.pdf"
+            # Minimal placeholder content; parsing may warn if pdfplumber is available.
+            pdf_path.write_text("%PDF-1.4\n1 0 obj\n<<>>\nendobj\n", encoding="utf-8")
+
+            request = PresentationRequest(inputs=[pdf_path])
+            summary = da.analyze_request(request)
+
+            self.assertIn(pdf_path.stem, summary.topics)
+            findings_text = " ".join(summary.findings).lower()
+            self.assertIn("pdf", findings_text)
