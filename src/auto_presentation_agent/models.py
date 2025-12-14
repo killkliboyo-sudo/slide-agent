@@ -14,6 +14,11 @@ class PresentationRequest:
     duration_minutes: Optional[int] = None
     style_prefs: dict[str, str] = field(default_factory=dict)
     output_path: Path = Path("output/presentation.pptx")
+    use_llm: bool = False
+    llm_provider: Optional[str] = "gemini"
+    llm_model: Optional[str] = None
+    image_endpoint: Optional[str] = None
+    assets_dir: Path = Path("assets")
 
 
 @dataclass

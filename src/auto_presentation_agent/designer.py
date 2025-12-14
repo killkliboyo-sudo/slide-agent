@@ -7,7 +7,7 @@ from itertools import cycle
 from .models import AssetSpec, OutlinePlan, SlideDraft
 
 
-def design_slides(outline: OutlinePlan) -> list[SlideDraft]:
+def design_slides(outline: OutlinePlan, image_generator=None, assets_dir=None) -> list[SlideDraft]:
     """Convert outline slides into designed drafts with layout hints and asset placeholders."""
     layouts = cycle(["split", "stacked", "focus"])
     drafts: list[SlideDraft] = []
@@ -16,7 +16,15 @@ def design_slides(outline: OutlinePlan) -> list[SlideDraft]:
         layout = next(layouts)
         assets: list[AssetSpec] = []
         if slide.visual_suggestion:
-            assets.append(AssetSpec(type=slide.visual_suggestion, prompt=f"Visual for {slide.title}"))
+            asset = AssetSpec(type=slide.visual_suggestion, prompt=f"Visual for {slide.title}")
+            if image_generator and assets_dir and asset.type == "image":
+                try:
+                    path = image_generator(asset.prompt, assets_dir)
+                    if path:
+                        asset.path = path
+                except Exception:
+                    pass
+            assets.append(asset)
 
         drafts.append(
             SlideDraft(

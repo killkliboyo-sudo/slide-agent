@@ -9,6 +9,7 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 3. Run the CLI: `auto-presentation-agent --input sample.txt --instructions "Focus on results"`
 4. Find the PPTX at `output/presentation.pptx` and a preview markdown file alongside it.
 5. Optional: pass style overrides (e.g., `--style font=Inter --style palette=dark`) to influence theme choices.
+6. Optional LLM and image gen: `--use-llm --llm-provider gemini --llm-model gemini-1.5-flash` (requires `GEMINI_API_KEY`), `--image-endpoint http://localhost:8188` for ComfyUI. Assets save to `--assets-dir` (default `assets/`).
 
 ## Project Layout
 
@@ -29,6 +30,7 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 - Run `python -m unittest discover -v tests`. The pipeline smoke test is skipped automatically if `python-pptx` is unavailable, though it is included in project dependencies.
  - The PPTX smoke test asserts that theme overrides (font, palette) flow through to the rendered file.
  - PDF analysis is optional; if `pdfplumber` is not installed, a warning is emitted instead of extraction.
+  - LLM/Image pathways are covered via mocks; no network calls occur during tests.
 
 ## Next Steps
 

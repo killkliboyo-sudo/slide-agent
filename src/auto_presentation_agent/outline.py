@@ -8,7 +8,11 @@ from .models import ContentSummary, OutlinePlan, OutlineSlide
 
 
 def generate_outline(
-    summary: ContentSummary, duration_minutes: Optional[int], style_prefs: Optional[dict[str, str]] = None
+    summary: ContentSummary,
+    duration_minutes: Optional[int],
+    style_prefs: Optional[dict[str, str]] = None,
+    llm_client=None,
+    use_llm: bool = False,
 ) -> OutlinePlan:
     """Create a minimal slide outline using the 1-minute rule and single-concept guidance."""
     target_count = _estimate_slide_count(summary, duration_minutes)
@@ -19,6 +23,10 @@ def generate_outline(
         topic = primary_topics[idx % len(primary_topics)]
         title = f"{topic}: key takeaway"
         bullets = _build_bullets(summary, topic)
+        if llm_client and use_llm:
+            refined = _refine_with_llm(llm_client, title, bullets)
+            if refined:
+                bullets = refined
         visual = _pick_visual(summary)
         slides.append(
             OutlineSlide(
@@ -64,3 +72,20 @@ def _build_theme(style_prefs: dict[str, str]) -> dict[str, str]:
     }
     base.update(style_prefs)
     return base
+
+
+def _refine_with_llm(llm_client, title: str, bullets: list[str]) -> list[str]:
+    """Ask LLM to tighten bullets; fallback to existing bullets on any failure."""
+    prompt = (
+        "Rewrite these slide bullets to be concise (<=12 words each), 3-5 bullets max.\n"
+        f"Title: {title}\nBullets:\n- " + "\n- ".join(bullets)
+    )
+    try:
+        text = llm_client.generate(prompt)
+    except Exception:
+        return bullets
+    if not text:
+        return bullets
+    lines = [line.strip("- ").strip() for line in text.splitlines() if line.strip()]
+    cleaned = [line for line in lines if line][:5]
+    return cleaned or bullets

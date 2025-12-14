@@ -2,10 +2,13 @@ from __future__ import annotations
 
 """Lightweight data analysis placeholder for the agent pipeline."""
 
+import logging
 from pathlib import Path
 from typing import Iterable, Tuple
 
 from .models import ContentSummary, PresentationRequest
+
+logger = logging.getLogger(__name__)
 
 try:
     import pandas as pd  # type: ignore
@@ -17,7 +20,7 @@ try:  # pdf parsing is optional
 except Exception:  # pragma: no cover - optional dependency
     pdfplumber = None
 
-def analyze_request(request: PresentationRequest) -> ContentSummary:
+def analyze_request(request: PresentationRequest, llm_client=None) -> ContentSummary:
     """
     Parse inputs and extract a coarse summary.
 
@@ -54,6 +57,11 @@ def analyze_request(request: PresentationRequest) -> ContentSummary:
                 findings.append(f"Excerpt from {path.name}: {excerpt}")
         else:
             findings.append(f"Unhandled file type noted: {path.name}")
+
+    if llm_client and request.use_llm:
+        llm_summary = _summarize_with_llm(llm_client, findings, data_points, request.instructions)
+        if llm_summary:
+            findings.append(f"LLM summary: {llm_summary}")
 
     return ContentSummary(
         topics=topics or ["General overview"],
@@ -129,3 +137,21 @@ def _summarize_pdf(path: Path) -> Tuple[list[str], str]:
     except Exception as exc:  # pragma: no cover - content dependent
         warnings.append(f"Failed to read PDF {path.name}: {exc}")
         return warnings, ""
+
+
+def _summarize_with_llm(llm_client, findings: list[str], data_points: list[str], instructions: str | None) -> str:
+    """Ask the LLM to condense findings; errors are swallowed."""
+    prompt = (
+        "Summarize the core concepts for a slide deck.\n"
+        "Findings:\n- " + "\n- ".join(findings[:10]) + "\n"
+    )
+    if data_points:
+        prompt += "Data points:\n- " + "\n- ".join(data_points[:5]) + "\n"
+    if instructions:
+        prompt += f"User instructions: {instructions}\n"
+    try:
+        result = llm_client.generate(prompt)
+        return result.strip() if result else ""
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("LLM summarization failed: %s", exc)
+        return ""

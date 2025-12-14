@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from time import perf_counter
 
+from . import imagegen, llm
 from .assembler import assemble
 from .data_analysis import analyze_request
 from .designer import design_slides
@@ -26,8 +27,20 @@ def _run_stage(stage: str, func, *args, **kwargs):
 
 def run_pipeline(request: PresentationRequest) -> AssemblyResult:
     """Run the end-to-end pipeline using placeholder implementations."""
-    summary = _run_stage("analysis", analyze_request, request)
-    outline = _run_stage("outline", generate_outline, summary, request.duration_minutes, request.style_prefs)
-    drafts = _run_stage("design", design_slides, outline)
+    llm_client = None
+    if request.use_llm and (request.llm_provider or "").lower() == "gemini":
+        llm_client = llm.build_gemini_from_env(model=request.llm_model)
+
+    summary = _run_stage("analysis", analyze_request, request, llm_client)
+    outline = _run_stage(
+        "outline", generate_outline, summary, request.duration_minutes, request.style_prefs, llm_client, request.use_llm
+    )
+
+    image_generator = (
+        lambda prompt, assets_dir: imagegen.generate_image(prompt, assets_dir, request.image_endpoint)
+        if (request.image_endpoint or assets_dir)
+        else None
+    )
+    drafts = _run_stage("design", design_slides, outline, image_generator, request.assets_dir)
     result = _run_stage("assembly", assemble, drafts, requested_output=request.output_path, theme=outline.theme)
     return result

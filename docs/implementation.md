@@ -20,7 +20,7 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 - **Data Analysis Agent**
   - Input: `PresentationRequest` (file paths, instructions).
   - Output: `ContentSummary` with topics, key findings, supporting data refs, and source provenance.
-  - Implementation: detectors for file types (text/markdown/pdf via pluggable readers), keyword/key-phrase extraction, simple statistics for tables (CSV/XLSX), and optional LLM summarization (pluggable, off by default until configured).
+  - Implementation: detectors for file types (text/markdown/pdf via pluggable readers), keyword/key-phrase extraction, simple statistics for tables (CSV/XLSX), and optional LLM summarization (Gemini; off by default until configured).
 - **Outline Generator**
   - Input: `ContentSummary`, optional target duration.
   - Output: `OutlinePlan` (slides with title-as-conclusion, bullet list 3–5 items, suggested chart/image types, estimated slide count via 1-minute rule).
@@ -28,7 +28,7 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 - **Slide Designer**
   - Input: `OutlinePlan`, style guide defaults (16:9, high contrast, sans-serif).
   - Output: list of `SlideDraft` items containing text blocks, asset specs (charts/images), and layout tokens (left/right/stack).
-  - Implementation: text condensing to short bullets, matplotlib chart generation from sample/provided data, stubs for image generation hook (no network by default).
+  - Implementation: text condensing to short bullets, matplotlib chart generation from sample/provided data, ComfyUI hook for image generation (optional; placeholder fallback when unavailable).
 - **Presentation Assembler**
   - Input: `SlideDraft` list and assets.
   - Output: `output/presentation.pptx` (and optional PDF export).

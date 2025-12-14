@@ -10,7 +10,10 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+import types
+
 from auto_presentation_agent.designer import design_slides
+from auto_presentation_agent import data_analysis as da
 from auto_presentation_agent.models import (
     ContentSummary,
     OutlinePlan,
@@ -58,6 +61,25 @@ class OutlineDesignerTests(unittest.TestCase):
         self.assertEqual(drafts[0].assets[0].type, "image")
         self.assertEqual(drafts[2].assets[0].type, "chart")
 
+    def test_designer_can_attach_generated_image(self) -> None:
+        outline = OutlinePlan(
+            slides=[
+                OutlineSlide(title="Alpha: conclusion here", bullets=["one"], visual_suggestion="image"),
+            ]
+        )
+        tmp = Path.cwd() / "assets_test"
+        if tmp.exists():
+            for f in tmp.glob("*"):
+                f.unlink()
+        tmp.mkdir(exist_ok=True)
+
+        def fake_gen(prompt, assets_dir):
+            p = assets_dir / "img.png"
+            p.write_bytes(b"\x89PNG\r\n\x1a\n")
+            return p
+
+        drafts = design_slides(outline, fake_gen, tmp)
+        self.assertTrue(drafts[0].assets[0].path and drafts[0].assets[0].path.exists())
 
 @unittest.skipUnless(PPTX_AVAILABLE, "python-pptx is required for the pipeline smoke test")
 class PipelineSmokeTests(unittest.TestCase):
@@ -113,8 +135,6 @@ if __name__ == "__main__":
     unittest.main()
 class DataAnalysisPdfTests(unittest.TestCase):
     def test_pdf_is_noted_and_summarized_or_warned(self) -> None:
-        from auto_presentation_agent import data_analysis as da
-
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             pdf_path = base / "sample.pdf"
@@ -127,3 +147,12 @@ class DataAnalysisPdfTests(unittest.TestCase):
             self.assertIn(pdf_path.stem, summary.topics)
             findings_text = " ".join(summary.findings).lower()
             self.assertIn("pdf", findings_text)
+
+
+class LlmIntegrationTests(unittest.TestCase):
+    def test_llm_summary_is_appended_when_enabled(self) -> None:
+        fake_llm = types.SimpleNamespace(generate=lambda prompt: "core insights summarized")
+        request = PresentationRequest(inputs=[], use_llm=True)
+        summary = da.analyze_request(request, llm_client=fake_llm)
+        joined = " ".join(summary.findings).lower()
+        self.assertIn("llm summary", joined)

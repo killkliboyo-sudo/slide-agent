@@ -65,6 +65,35 @@ def build_parser() -> argparse.ArgumentParser:
         help="Style overrides key=value (e.g., palette=dark).",
     )
     parser.add_argument(
+        "--use-llm",
+        action="store_true",
+        help="Enable LLM-assisted analysis (Gemini; requires GEMINI_API_KEY).",
+    )
+    parser.add_argument(
+        "--llm-model",
+        type=str,
+        default=None,
+        help="LLM model name (default gemini-1.5-flash).",
+    )
+    parser.add_argument(
+        "--llm-provider",
+        type=str,
+        default="gemini",
+        help="LLM provider (currently gemini).",
+    )
+    parser.add_argument(
+        "--image-endpoint",
+        type=str,
+        default=None,
+        help="ComfyUI base URL for image generation (optional).",
+    )
+    parser.add_argument(
+        "--assets-dir",
+        type=Path,
+        default=Path("assets"),
+        help="Directory to store generated assets.",
+    )
+    parser.add_argument(
         "--output",
         "-o",
         type=Path,
@@ -93,6 +122,11 @@ def main() -> None:
         duration_minutes=args.duration,
         style_prefs=style_overrides,
         output_path=args.output.expanduser(),
+        use_llm=args.use_llm,
+        llm_provider=args.llm_provider,
+        llm_model=args.llm_model,
+        image_endpoint=args.image_endpoint,
+        assets_dir=args.assets_dir.expanduser(),
     )
     result = run_pipeline(request)
     print(f"Slides planned: {result.slides_built}")
