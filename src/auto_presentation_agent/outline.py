@@ -18,11 +18,12 @@ def generate_outline(summary: ContentSummary, duration_minutes: Optional[int]) -
         topic = primary_topics[idx % len(primary_topics)]
         title = f"{topic}: key takeaway"
         bullets = _build_bullets(summary, topic)
+        visual = _pick_visual(summary)
         slides.append(
             OutlineSlide(
                 title=title,
                 bullets=bullets,
-                visual_suggestion="chart" if idx == 0 else "image",
+                visual_suggestion=visual,
                 sources=summary.sources,
             )
         )
@@ -48,3 +49,10 @@ def _build_bullets(summary: ContentSummary, topic: str) -> list[str]:
     candidates = summary.findings or [f"Highlight main point for {topic}"]
     trimmed = [text[:120] for text in candidates]
     return trimmed[:5]
+
+
+def _pick_visual(summary: ContentSummary) -> str:
+    """Choose a visual suggestion based on available data."""
+    if summary.data_points:
+        return "chart"
+    return "image"
