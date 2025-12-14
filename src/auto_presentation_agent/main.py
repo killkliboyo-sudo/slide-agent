@@ -1,36 +1,82 @@
 from __future__ import annotations
 
-"""Entry point for the automated slide-generation agent scaffold."""
+"""CLI entry for the automated slide-generation agent."""
 
-from dataclasses import dataclass
+import argparse
 from pathlib import Path
-from typing import Optional
+
+from .models import PresentationRequest
+from .pipeline import run_pipeline
 
 
-@dataclass
-class PresentationRequest:
-    """Data passed into the agent system."""
+def _parse_style_overrides(raw: list[str]) -> dict[str, str]:
+    """Parse key=value style overrides from CLI."""
+    styles: dict[str, str] = {}
+    for item in raw:
+        if "=" in item:
+            key, value = item.split("=", 1)
+            styles[key.strip()] = value.strip()
+    return styles
 
-    inputs: list[Path]
-    instructions: Optional[str] = None
 
-
-def plan_presentation(request: PresentationRequest) -> str:
-    """Placeholder planner that echoes the request context."""
-    input_list = "\n".join(f"- {path}" for path in request.inputs) or "- (no inputs provided)"
-    instructions = request.instructions or "(no additional instructions)"
-    return (
-        "Auto Presentation Agent scaffold\n"
-        f"Inputs:\n{input_list}\n"
-        f"Instructions: {instructions}\n"
-        "Refer to SPEC.md to implement the full multi-agent pipeline."
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Auto Presentation Agent")
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=Path,
+        nargs="*",
+        default=[],
+        help="Input files (text, markdown, pdf, csv, etc.)",
     )
+    parser.add_argument(
+        "--instructions",
+        "-m",
+        type=str,
+        default=None,
+        help="Additional guidance for the agent.",
+    )
+    parser.add_argument(
+        "--duration",
+        "-d",
+        type=int,
+        default=None,
+        help="Estimated presentation duration in minutes (1 slide per minute heuristic).",
+    )
+    parser.add_argument(
+        "--style",
+        "-s",
+        action="append",
+        default=[],
+        help="Style overrides key=value (e.g., palette=dark).",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        default=Path("output/presentation.pptx"),
+        help="Target PPTX output path.",
+    )
+    return parser
 
 
 def main() -> None:
-    """CLI stub to prove the project wiring works."""
-    request = PresentationRequest(inputs=[], instructions=None)
-    print(plan_presentation(request))
+    parser = build_parser()
+    args = parser.parse_args()
+    style_overrides = _parse_style_overrides(args.style)
+
+    request = PresentationRequest(
+        inputs=args.input,
+        instructions=args.instructions,
+        duration_minutes=args.duration,
+        style_prefs=style_overrides,
+        output_path=args.output,
+    )
+    result = run_pipeline(request)
+    print(f"Slides planned: {result.slides_built}")
+    print(f"Preview generated at: {result.preview_path}")
+    print(f"Requested PPTX path: {result.requested_output}")
+    print(result.notes)
 
 
 if __name__ == "__main__":
