@@ -3,10 +3,24 @@ from __future__ import annotations
 """CLI entry for the automated slide-generation agent."""
 
 import argparse
+import logging
 from pathlib import Path
 
 from .models import PresentationRequest
 from .pipeline import run_pipeline
+
+
+def _expand_inputs(paths: list[Path]) -> tuple[list[Path], list[Path]]:
+    """Expand user paths and split into existing vs missing."""
+    resolved: list[Path] = []
+    missing: list[Path] = []
+    for raw in paths:
+        path = raw.expanduser()
+        if path.exists():
+            resolved.append(path)
+        else:
+            missing.append(path)
+    return resolved, missing
 
 
 def _parse_style_overrides(raw: list[str]) -> dict[str, str]:
@@ -63,14 +77,22 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     style_overrides = _parse_style_overrides(args.style)
+    resolved_inputs, missing_inputs = _expand_inputs(args.input)
+
+    if missing_inputs:
+        missing_list = ", ".join(str(p) for p in missing_inputs)
+        parser.error(f"Input file(s) not found: {missing_list}")
+    if not resolved_inputs:
+        parser.error("At least one --input file is required.")
 
     request = PresentationRequest(
-        inputs=args.input,
+        inputs=resolved_inputs,
         instructions=args.instructions,
         duration_minutes=args.duration,
         style_prefs=style_overrides,
-        output_path=args.output,
+        output_path=args.output.expanduser(),
     )
     result = run_pipeline(request)
     print(f"Slides planned: {result.slides_built}")

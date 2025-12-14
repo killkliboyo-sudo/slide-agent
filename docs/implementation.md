@@ -34,6 +34,13 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
   - Output: `output/presentation.pptx` (and optional PDF export).
   - Implementation: `python-pptx` for slide creation, layout application, font/color theme enforcement, footer/source annotations.
 
+## Detailed behavior for v0
+- **Data Analysis**: detect input type by suffix/MIME; text/markdown read with UTF-8 fallback; CSV/XLSX parsed via pandas; PDFs stubbed until adapter added. Normalize extracted text into short paragraphs, collect numeric columns to allow quick charts, and carry absolute file paths in `sources`. Programmatic callers may pass missing files which become findings with a warning; the CLI blocks missing paths earlier.
+- **Outline Generation**: slide count = `duration_minutes` if provided, else max(len(findings), len(topics), 3) capped at 12. Titles rewritten to conclusion form (`<topic>: <conclusion>` → `<conclusion>`). Bullets trimmed to <=120 chars, max 5 per slide. Visual suggestion chosen from `chart|image` based on presence of tabular data.
+- **Slide Design**: cycle layouts (`split`, `stacked`, `focus`) and attach `AssetSpec` placeholders. Condense bullets to crisp statements; inject note hinting at SPEC principles (single concept, title-as-conclusion). Style tokens: ratio 16:9, sans-serif, high-contrast palette, optional `style_prefs` overrides (palette/font/background choice).
+- **Assembly**: until python-pptx lands, emit markdown preview next to requested PPTX path. Planned PPTX theme: master slide with title+body+footer placeholders, consistent margins, slide number/footer with sources when available. Assets resolved from `assets/` relative paths; non-existent assets skipped with a note.
+- **CLI/Orchestration**: argparse entry validates at least one existing input (rejects missing paths), expands `~`, and passes `PresentationRequest` to `run_pipeline`. Logging prints stage boundaries and preview location with timings; non-zero exit on unhandled exceptions.
+
 ## Data Structures (initial draft)
 - `PresentationRequest`: `inputs: list[Path]`, `instructions: str|None`, `duration_minutes: int|None`, `style_prefs: dict`.
 - `ContentSummary`: `topics`, `findings`, `tables`, `sources`.
@@ -62,3 +69,9 @@ This document translates `SPEC.md` into an actionable architecture and roadmap f
 4) Integrate `python-pptx` assembler with simple theme.
 5) Wire data analysis readers for text/CSV and add provenance tracking.
 6) Add optional adapters (PDF parsing, LLM/image generation).
+
+## Upcoming tasks (working list)
+- Harden CLI validation (missing files, empty inputs) and log stage timing.
+- Flesh out pandas-based CSV/XLSX parsing with simple numeric summaries and chart suggestions.
+- Replace markdown preview with basic python-pptx rendering (title/body, split layout, footer).
+- Add fixture-driven tests for outline and designer heuristics plus an end-to-end smoke test.
