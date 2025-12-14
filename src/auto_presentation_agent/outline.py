@@ -2,13 +2,14 @@ from __future__ import annotations
 
 """Outline generation heuristics."""
 
-from math import ceil
 from typing import Optional
 
 from .models import ContentSummary, OutlinePlan, OutlineSlide
 
 
-def generate_outline(summary: ContentSummary, duration_minutes: Optional[int]) -> OutlinePlan:
+def generate_outline(
+    summary: ContentSummary, duration_minutes: Optional[int], style_prefs: Optional[dict[str, str]] = None
+) -> OutlinePlan:
     """Create a minimal slide outline using the 1-minute rule and single-concept guidance."""
     target_count = _estimate_slide_count(summary, duration_minutes)
     slides: list[OutlineSlide] = []
@@ -33,6 +34,8 @@ def generate_outline(summary: ContentSummary, duration_minutes: Optional[int]) -
         "font": "Segoe UI",
         "palette": "high-contrast",
     }
+    if style_prefs:
+        theme.update(style_prefs)
     return OutlinePlan(slides=slides, theme=theme)
 
 

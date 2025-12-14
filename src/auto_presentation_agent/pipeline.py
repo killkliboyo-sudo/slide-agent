@@ -27,7 +27,7 @@ def _run_stage(stage: str, func, *args, **kwargs):
 def run_pipeline(request: PresentationRequest) -> AssemblyResult:
     """Run the end-to-end pipeline using placeholder implementations."""
     summary = _run_stage("analysis", analyze_request, request)
-    outline = _run_stage("outline", generate_outline, summary, request.duration_minutes)
+    outline = _run_stage("outline", generate_outline, summary, request.duration_minutes, request.style_prefs)
     drafts = _run_stage("design", design_slides, outline)
-    result = _run_stage("assembly", assemble, drafts, requested_output=request.output_path)
+    result = _run_stage("assembly", assemble, drafts, requested_output=request.output_path, theme=outline.theme)
     return result

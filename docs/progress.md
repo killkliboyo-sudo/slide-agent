@@ -10,3 +10,5 @@ Chronological log of decisions and completed steps.
 - 2025-12-14: Hardened CLI with input existence checks and path expansion, added stage timing logs in the pipeline, and updated docs to reflect the stricter orchestration behavior.
 - 2025-12-14: Enriched data analysis with text excerpts, CSV/TSV/XLSX numeric summaries (via pandas when available), data-driven visual suggestions, and added pandas to runtime dependencies.
 - 2025-12-14: Implemented PPTX assembly with simple 16:9 slides, retained markdown previews, and added python-pptx to runtime dependencies.
+- 2025-12-15: Added unit tests for outline/designer heuristics and a pipeline smoke test (skips if python-pptx is absent); refreshed README to reflect PPTX output and testing guidance.
+- 2025-12-15: Wired style preferences through outline→assembler to honor custom fonts/palette; ensured assembler uses theme fonts consistently.

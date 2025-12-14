@@ -1,13 +1,14 @@
 # Auto Presentation Agent
 
-Python scaffold for the automated slide-generation agent described in `SPEC.md`. The current layout is intentionally minimal and ready for iterative development. A textual preview is generated today; PPTX rendering will follow.
+Python scaffold for the automated slide-generation agent described in `SPEC.md`. The current layout is intentionally minimal and ready for iterative development. The pipeline produces a PPTX plus a markdown preview for quick inspection.
 
 ## Getting Started
 
 1. Use Python 3.10+ and create a virtual environment: `python -m venv .venv && source .venv/bin/activate`.
 2. Install in editable mode: `pip install -e .`
 3. Run the CLI: `auto-presentation-agent --input sample.txt --instructions "Focus on results"`
-4. Find the preview at `output/presentation.md` (currently emitted in place of PPTX).
+4. Find the PPTX at `output/presentation.pptx` and a preview markdown file alongside it.
+5. Optional: pass style overrides (e.g., `--style font=Inter --style palette=dark`) to influence theme choices.
 
 ## Project Layout
 
@@ -17,15 +18,18 @@ Python scaffold for the automated slide-generation agent described in `SPEC.md`.
 - `src/auto_presentation_agent/data_analysis.py` – stub analyzer.
 - `src/auto_presentation_agent/outline.py` – outline generator using the 1-minute rule.
 - `src/auto_presentation_agent/designer.py` – slide draft creator with layout hints.
-- `src/auto_presentation_agent/assembler.py` – writes markdown preview (PPTX TBD).
+- `src/auto_presentation_agent/assembler.py` – writes PPTX slides and a markdown preview.
 - `src/auto_presentation_agent/pipeline.py` – pipeline orchestration.
 - `src/auto_presentation_agent/main.py` – CLI entry point.
 - `docs/implementation.md` – implementation plan aligned to `SPEC.md`.
 - `docs/progress.md` – chronological work log.
 
+## Testing
+
+- Run `python -m unittest discover -v tests`. The pipeline smoke test is skipped automatically if `python-pptx` is unavailable, though it is included in project dependencies.
+
 ## Next Steps
 
-- Translate the specification into concrete modules (data analysis, outline generation, slide design, and assembler).
-- Add dependencies (e.g., `python-pptx`, NLP/LLM tooling) as implementation details solidify.
-- Implement tests for each agent module once behavior is defined.
-- Replace markdown preview with real PPTX assembly and add PDF export if needed.
+- Translate the specification into richer modules (analysis, outline generation, slide design, assembler).
+- Add optional adapters (LLM/image generation) when ready.
+- Expand test coverage, including golden-file previews and PDF export validation when added.
