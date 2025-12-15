@@ -50,14 +50,78 @@ class GeminiClient:
 
     def generate_image(self, prompt: str, image_model: Optional[str] = None) -> Optional[bytes]:
         """Generate an image via Gemini image generation (returns PNG bytes)."""
-        model = image_model or "gemini-1.5-flash-latest"
+        model = image_model or "imagen-4.0-generate-001"
+        
+        # Imagen models typically use the :predict endpoint
+        if "imagen" in model.lower():
+            # Ensure model name includes 'models/' prefix for the URL if needed, 
+            # or just construct URL with models/{model} if input is bare ID.
+            # Safest is to strip prefix if present and use fixed structure.
+            model_id = model.replace("models/", "")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:predict?key={self.api_key}"
+            body = {
+                "instances": [{"prompt": prompt}],
+                "parameters": {"sampleCount": 1},
+            }
+            data = json.dumps(body).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=data,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    payload = json.loads(resp.read().decode("utf-8"))
+            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+                logger.warning("Gemini image request (predict) failed: %s", exc)
+                return None
+                
+            predictions = payload.get("predictions") or []
+            if not predictions:
+                return None
+                
+            # Handle possible response formats (string base64 or dict with bytesBase64Encoded)
+            first_pred = predictions[0]
+            b64_data = None
+            if isinstance(first_pred, str):
+                b64_data = first_pred
+            elif isinstance(first_pred, dict):
+                b64_data = first_pred.get("bytesBase64Encoded")
+                
+            if not b64_data:
+                return None
+                
+            try:
+                return base64.b64decode(b64_data)
+            except Exception:
+                return None
+
+        # Fallback for other models (e.g. older Gemini models using generateContent)
+        # Nano Banana (models/nano-banana-pro-preview) fails with responseMimeType: image/png
+        # So we omit it for that model, or maybe generally if not sure.
+        # But older gemini-1.5-flash-latest might have needed it (though it failed too in tests).
+        # Let's make it conditional or just try without it for nano.
+        
+        generation_config = {}
+        if "nano" not in model.lower() and "banana" not in model.lower():
+            if "flash-image" in model.lower():
+                generation_config["responseModalities"] = ["IMAGE"]
+            else:
+                 generation_config["responseMimeType"] = "image/png"
+
+        # Ensure model name includes 'models/' prefix for the URL if needed, 
+        # or just construct URL with models/{model} if input is bare ID.
+        model_id = model.replace("models/", "")
         url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={self.api_key}"
         )
         body = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "image/png"},
         }
+        if generation_config:
+            body["generationConfig"] = generation_config
+            
         data = json.dumps(body).encode("utf-8")
         req = urllib.request.Request(
             url,
