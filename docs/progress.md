@@ -18,3 +18,4 @@ Chronological log of decisions and completed steps.
 - 2025-12-15: Added Gemini image backend (banana pro) alongside ComfyUI, with CLI selection and tests using mocked clients; README/plan updated accordingly.
 - 2025-12-15: Updated default Gemini model names to `gemini-1.5-pro-latest` (text) and `gemini-1.5-flash-latest` (image) with CLI overrides.
 - 2025-12-15: Installed python-pptx locally so the PPTX smoke test runs; added Gemini model listing flag and test coverage for model discovery.
+- 2025-12-15: Added snapshot test for markdown preview, improved Gemini model listing with text/image filtering, and documented the listing flag.

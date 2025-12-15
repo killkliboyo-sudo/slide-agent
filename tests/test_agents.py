@@ -18,10 +18,12 @@ from auto_presentation_agent import data_analysis as da
 from auto_presentation_agent import imagegen
 from auto_presentation_agent import llm
 from auto_presentation_agent.models import (
+    AssetSpec,
     ContentSummary,
     OutlinePlan,
     OutlineSlide,
     PresentationRequest,
+    SlideDraft,
 )
 from auto_presentation_agent.outline import generate_outline
 try:
@@ -201,3 +203,21 @@ class LlmIntegrationTests(unittest.TestCase):
         with mock.patch("urllib.request.urlopen", fake_urlopen):
             models = llm.list_gemini_models("dummy")
         self.assertEqual(models, ["models/gemini-1", "models/gemini-2"])
+
+
+class PreviewSnapshotTests(unittest.TestCase):
+    def test_markdown_preview_matches_golden(self) -> None:
+        from auto_presentation_agent.assembler import _render_preview
+
+        slides = [
+            SlideDraft(
+                title="Example Title",
+                bullets=["First point", "Second point"],
+                layout="split",
+                assets=[AssetSpec(type="image", prompt="something")],
+                notes="Drafted per SPEC guidelines.",
+            )
+        ]
+        preview = _render_preview(slides).strip()
+        golden = (Path(__file__).parent / "fixtures" / "preview_golden.md").read_text(encoding="utf-8").strip()
+        self.assertEqual(preview, golden)

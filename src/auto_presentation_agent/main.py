@@ -112,6 +112,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="List available Gemini models (requires GEMINI_API_KEY) and exit.",
     )
     parser.add_argument(
+        "--gemini-model-kind",
+        type=str,
+        default="all",
+        choices=["all", "text", "image"],
+        help="Filter Gemini models when listing.",
+    )
+    parser.add_argument(
         "--output",
         "-o",
         type=Path,
@@ -134,7 +141,7 @@ def main() -> None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
             parser.error("GEMINI_API_KEY is required to list models.")
-        models = list_gemini_models(api_key)
+        models = list_gemini_models(api_key, kind=args.gemini_model_kind)
         if not models:
             parser.error("No models returned; check API key or connectivity.")
         for name in models:

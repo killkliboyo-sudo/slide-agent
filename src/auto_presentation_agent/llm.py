@@ -94,7 +94,7 @@ def build_gemini_from_env(model: Optional[str] = None) -> Optional[GeminiClient]
     return GeminiClient(api_key=api_key, model=model or "gemini-1.5-pro-latest")
 
 
-def list_gemini_models(api_key: str) -> list[str]:
+def list_gemini_models(api_key: str, kind: str = "all") -> list[str]:
     """Retrieve available Gemini model names using the public models endpoint."""
     url = "https://generativelanguage.googleapis.com/v1beta/models"
     req = urllib.request.Request(f"{url}?key={api_key}", method="GET")
@@ -105,4 +105,18 @@ def list_gemini_models(api_key: str) -> list[str]:
         logger.warning("Failed to list Gemini models: %s", exc)
         return []
     models = payload.get("models") or []
-    return [model.get("name") for model in models if model.get("name")]
+    names: list[str] = []
+    kind = (kind or "all").lower()
+    for model in models:
+        name = model.get("name")
+        if not name:
+            continue
+        methods = model.get("supportedGenerationMethods") or model.get("supported_generation_methods") or []
+        is_text = "generateContent" in methods
+        is_image = "image" in name.lower() or "vision" in name.lower()
+        if kind == "text" and not is_text:
+            continue
+        if kind == "image" and not (is_text and is_image):
+            continue
+        names.append(name)
+    return names
